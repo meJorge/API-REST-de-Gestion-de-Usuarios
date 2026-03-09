@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const { getAllUsers, getUserById, updateUser, deleteUser } = require('../controllers/userController.mjs').default;
-const { changePassword } = require('../controllers/authController.mjs').default;
-const authenticate = require('../middlewares/auth.mjs').default;
-const authorize = require('../middlewares/authorize.mjs');
-const { validateUpdate, validateChangePassword } = require('../middlewares/validate.mjs');
+const { getAllUsers, getUserById, updateUser, deleteUser } = require('../controllers/userController');
+const { changePassword } = require('../controllers/authController');
+const authenticate = require('../middlewares/auth');
+const authorize = require('../middlewares/authorize');
+const { validateUpdate, validateChangePassword } = require('../middlewares/validate');
 
 // Todas las rutas requieren autenticación
 router.use(authenticate);
@@ -14,7 +14,7 @@ router.get('/', authorize('admin'), getAllUsers);
 // GET /api/users/:id     → Admin o el propio usuario
 router.get('/:id', getUserById);
 
-// PUT /api/users/:id     → Admin o el propio usuario7
+// PUT /api/users/:id     → Admin o el propio usuario
 router.put('/:id', validateUpdate, updateUser);
 
 // DELETE /api/users/:id  → Solo admin

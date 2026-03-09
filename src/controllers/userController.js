@@ -1,16 +1,23 @@
-import { find, findOne, findByIdAndUpdate } from '../models/User.mjs';
+const User = require('../models/User');
 
-
-export const getAllUsers = async (req, res) => {
+/**
+ * GET /api/users
+ * Lista todos los usuarios (solo admin)
+ */
+const getAllUsers = async (req, res) => {
   try {
-    const users = await find({ active: true }).select('-password');
+    const users = await User.find({ active: true }).select('-password');
     res.json({ total: users.length, users });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener usuarios', details: error.message });
   }
 };
 
-export const getUserById = async (req, res) => {
+/**
+ * GET /api/users/:id
+ * Obtiene un usuario por ID (admin o el propio usuario)
+ */
+const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -19,7 +26,7 @@ export const getUserById = async (req, res) => {
       return res.status(403).json({ error: 'No tienes permisos para ver este usuario' });
     }
 
-    const user = await findOne({ _id: id, active: true }).select('-password');
+    const user = await User.findOne({ _id: id, active: true }).select('-password');
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
@@ -30,7 +37,11 @@ export const getUserById = async (req, res) => {
   }
 };
 
-export const updateUser = async (req, res) => {
+/**
+ * PUT /api/users/:id
+ * Actualiza datos de un usuario (admin puede actualizar cualquiera; usuario solo el suyo)
+ */
+const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, role } = req.body;
@@ -47,7 +58,7 @@ export const updateUser = async (req, res) => {
 
     // Verificar email duplicado si se intenta cambiar
     if (email) {
-      const emailExists = await findOne({ email, _id: { $ne: id } });
+      const emailExists = await User.findOne({ email, _id: { $ne: id } });
       if (emailExists) {
         return res.status(409).json({ error: 'El email ya está en uso por otro usuario' });
       }
@@ -58,7 +69,7 @@ export const updateUser = async (req, res) => {
     if (email) updateData.email = email;
     if (role && req.user.role === 'admin') updateData.role = role;
 
-    const user = await findByIdAndUpdate(id, updateData, {
+    const user = await User.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).select('-password');
@@ -73,7 +84,11 @@ export const updateUser = async (req, res) => {
   }
 };
 
-export const deleteUser = async (req, res) => {
+/**
+ * DELETE /api/users/:id
+ * Elimina (desactiva) un usuario (solo admin)
+ */
+const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -82,7 +97,7 @@ export const deleteUser = async (req, res) => {
       return res.status(400).json({ error: 'No puedes eliminar tu propia cuenta' });
     }
 
-    const user = await findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       id,
       { active: false },
       { new: true }
@@ -97,3 +112,5 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar usuario', details: error.message });
   }
 };
+
+module.exports = { getAllUsers, getUserById, updateUser, deleteUser };

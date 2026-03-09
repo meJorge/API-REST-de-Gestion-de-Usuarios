@@ -1,7 +1,11 @@
-import { verifyToken } from '../utils/generateToken.mjs';
-import { findById } from '../models/User.mjs';
+const { verifyToken } = require('../utils/generateToken');
+const User = require('../models/User');
 
-export const authenticate = async (req, res, next) => {
+/**
+ * Middleware que verifica el JWT en el header Authorization
+ * Añade req.user con los datos del usuario autenticado
+ */
+const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -12,7 +16,8 @@ export const authenticate = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
 
-    const user = await findById(decoded.id).select('-password');
+    // Verificar que el usuario aún existe y está activo
+    const user = await User.findById(decoded.id).select('-password');
     if (!user || !user.active) {
       return res.status(401).json({ error: 'Usuario no encontrado o inactivo' });
     }
@@ -26,3 +31,5 @@ export const authenticate = async (req, res, next) => {
     return res.status(401).json({ error: 'Token inválido' });
   }
 };
+
+module.exports = authenticate;

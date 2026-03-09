@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const jwtConfig = require('../config/jwt.mjs');
+const jwtConfig = require('../config/jwt');
 
 /**
  * Genera un token JWT firmado con los datos del usuario
